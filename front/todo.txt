@@ -1,0 +1,4 @@
+1 : Add login and sing up page : (do/don't)
+2 : Edit color of pages : (do/don't)
+3 : Edit name of files and folders (hospital and many people names) : (do/don't)
+4 : remove some part of pages ( not about our work ) : (do/don't)
