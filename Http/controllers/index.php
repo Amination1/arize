@@ -1,5 +1,3 @@
 <?php
 
-echo 55;
-
-view('home');
+view('home.view.php');

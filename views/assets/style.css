@@ -1,0 +1,26 @@
+.nav-link:hover {
+    background-color: rgba(59, 130, 246, 0.2);
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.inputs {
+    resize: none;
+}
+
+.alink {
+    text-align: center;
+}
