@@ -2,54 +2,82 @@
 
 namespace Core;
 
+use Core\Middleware\Authenticated;
+use Core\Middleware\Guest;
+use Core\Middleware\Middleware;
+
 class Router
 {
     protected $routes = [];
 
-    public function route($addr, $method, $callback)
+    public function add($method, $uri, $controller)
     {
         $this->routes[] = [
-            'path' => $addr,
-            'method' => strtoupper($method),
-            'handler' => $callback
+            'uri' => $uri,
+            'controller' => $controller,
+            'method' => $method,
+            'middleware' => null
         ];
+
+        return $this;
     }
 
-    public function dispatch()
+    public function get($uri, $controller)
     {
-        $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-        $requestMethod = $_SERVER['REQUEST_METHOD'];
+        return $this->add('GET', $uri, $controller);
+    }
 
+    public function post($uri, $controller)
+    {
+        return $this->add('POST', $uri, $controller);
+    }
+
+    public function delete($uri, $controller)
+    {
+        return $this->add('DELETE', $uri, $controller);
+    }
+
+    public function patch($uri, $controller)
+    {
+        return $this->add('PATCH', $uri, $controller);
+    }
+
+    public function put($uri, $controller)
+    {
+        return $this->add('PUT', $uri, $controller);
+    }
+
+    public function only($key)
+    {
+        $this->routes[array_key_last($this->routes)]['middleware'] = $key;
+
+        return $this;
+    }
+
+    public function route($uri, $method)
+    {
         foreach ($this->routes as $route) {
-            if ($route['method'] === $requestMethod && $this->matchPath($route['path'], $requestUri)) {
-                return call_user_func($route['handler']);
+            if ($route['uri'] === $uri && $route['method'] === strtoupper($method)) {
+                Middleware::resolve($route['middleware']);
+
+                return require base_path('Http/controllers/' . $route['controller']);
             }
         }
 
-        http_response_code(404);
-        echo 'صفحه مورد نظر یافت نشد';
-        exit;
+        $this->abort();
     }
 
-    private function matchPath($routePath, $requestUri)
+    public function previousUrl()
     {
-        $routePath = rtrim($routePath, '/');
-        $requestUri = rtrim($requestUri, '/');
+        return $_SERVER['HTTP_REFERER'];
+    }
 
-        // تبدیل مسیر به یک الگوی regex
-        $pattern = preg_replace('/\{(\w+)\}/', '(?P<$1>\w+)', $routePath);
-        $pattern = '#^' . $pattern . '$#';
+    protected function abort($code = 404)
+    {
+        http_response_code($code);
 
-        if (preg_match($pattern, $requestUri, $matches)) {
-            // استخراج پارامترها و افزودن به آرایه $_GET
-            foreach ($matches as $key => $value) {
-                if (is_string($key)) {
-                    $_GET[$key] = $value;
-                }
-            }
-            return true;
-        }
+        require base_path("views/{$code}.php");
 
-        return false;
+        die();
     }
 }

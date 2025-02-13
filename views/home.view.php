@@ -63,7 +63,7 @@
 <main class="py-10 fade-in">
     <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-2xl font-bold text-center mb-6">ساخت عریضه با AI</h2>
-        <form>
+        <form action="/create">
             <div class="mb-4 text-right">
                 <label for="title" class="block text-sm font-medium text-gray-700">عنوان عریضه</label>
                 <input type="text" id="title" name="title" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-500">

@@ -11,7 +11,8 @@ $router->route('/about', 'GET', function() {
 echo 'درباره ما';
 });
 
-$router->route('/contact', 'POST', function() {
+$router->route('/create', 'POST', function() {
+    view_c('create');
 });
 
 $router->dispatch();
