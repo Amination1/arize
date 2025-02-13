@@ -1,0 +1,9 @@
+{
+    "name": "root/arize",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Core\\": "Core/"
+        }
+    }
+}

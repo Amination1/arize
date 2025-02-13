@@ -1,4 +1,3 @@
 <?php
 
-$router = new Core\Router();
-
+$router->get('/', 'index.php');
