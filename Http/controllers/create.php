@@ -1,65 +1,54 @@
 <?php
 
-// داده‌های شما
-$data = $_SESSION['arize'];
+session_start(); // شروع session
 
-// متن درخواست برای AI
-$userContent = "یک عریضه رسمی با مشخصات زیر بنویس:\n";
-foreach ($data as $key => $value) {
-    $userContent .= "$key: $value\n";
-}
+require 'vendor/autoload.php'; // بارگذاری autoload
 
-// آدرس OpenRouter API
-$apiUrl = "https://openrouter.ai/api/v1/chat/completions";
+use OpenAI\Client;
+use OpenAI\Factory;
+use GuzzleHttp\Client as GuzzleClient;
 
 // کلید API شما
-$apiKey = "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"; // اینجا کلید API خود را قرار دهید
+$yourApiKey = 'aa-sMpogzuihomx2XpXbKExE8HHK8fV7rtlSzNlmbe22Z2QEEGK'; // کلید API خود را اینجا قرار دهید
 
-// داده‌های درخواست به API
-$requestData = [
-    "model" => "openai/gpt-4", // مدل مورد نظر (مثلاً GPT-4)
-    "messages" => [
-        ["role" => "system", "content" => "You are a helpful assistant."],
-        ["role" => "user", "content" => $userContent]
-    ],
-    "stream" => false
-];
+// ایجاد کلاینت OpenAI
+$client = (new Factory())
+    ->withApiKey($yourApiKey)
+    ->withBaseUri('https://api.avalai.ir/v1') // آدرس پایه API
+    ->withHttpClient(new GuzzleClient()) // استفاده از Guzzle برای درخواست‌ها
+    ->make();
 
-// تبدیل داده‌ها به فرمت JSON
-$jsonData = json_encode($requestData);
+// آماده‌سازی محتوای درخواست از session
+$arizeData = $_SESSION['arize'] ?? []; // داده‌های session
 
-// تنظیمات درخواست
-$options = [
-    "http" => [
-        "header" => "Content-Type: application/json\r\n" .
-            "Authorization: Bearer " . $apiKey . "\r\n" .
-            "HTTP-Referer: https://your-site-url.com\r\n" . // آدرس سایت شما
-            "X-Title: Your Site Name\r\n", // نام سایت شما
-        "method" => "POST",
-        "content" => $jsonData
-    ]
-];
-
-// ایجاد context برای ارسال درخواست
-$context = stream_context_create($options);
-
-// ارسال درخواست به API و دریافت پاسخ
-$response = file_get_contents($apiUrl, false, $context);
-
-// بررسی پاسخ
-if ($response === FALSE) {
-    die("خطا در ارتباط با API.");
-}
-
-// تبدیل پاسخ JSON به آرایه
-$result = json_decode($response, true);
-
-// نمایش عریضه
-if (isset($result['choices'][0]['message']['content'])) {
-    echo "<h2>عریضه ایجاد شده:</h2>";
-    echo "<p>" . nl2br(htmlspecialchars($result['choices'][0]['message']['content'])) . "</p>";
+if (empty($arizeData)) {
+    $answer = "خطا: اطلاعات عریضه یافت نشد.";
 } else {
-    echo "خطا در ایجاد عریضه.";
+    // تبدیل داده‌های session به یک رشته متنی
+    $userContent = "یک عریضه رسمی با مشخصات زیر بنویس:\n";
+    foreach ($arizeData as $key => $value) {
+        $userContent .= "$key: $value\n";
+    }
+
+    // ارسال درخواست به API
+    try {
+        $result = $client->chat()->create([
+            'model' => 'gpt-4o-mini', // مدل مورد استفاده
+            'messages' => [
+                ['role' => 'user', 'content' => $userContent], // پیام کاربر
+            ],
+        ]);
+
+        // دریافت پاسخ
+        $answer = $result->choices[0]->message->content;
+    } catch (\Exception $e) {
+        // مدیریت خطاها
+        $answer = "خطا: " . $e->getMessage();
+    }
 }
 
-view('create.view.php');
+// ذخیره پاسخ در session یا متغیرهای دیگر
+$_SESSION['answer'] = $answer;
+
+// نمایش view
+view("create.view.php", ['answer' => $answer]);
