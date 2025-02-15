@@ -14,6 +14,11 @@ class Session
         $_SESSION[$key] = $value;
     }
 
+    public static function unput($key)
+    {
+        unset($_SESSION[$key]);
+    }
+
     public static function get($key, $default = null)
     {
         return $_SESSION['_flash'][$key] ?? $_SESSION[$key] ?? $default;
